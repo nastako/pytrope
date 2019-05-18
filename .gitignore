@@ -105,4 +105,4 @@ venv.bak/
 
 # we want to ignore json files because they're bound
 # to accrue through testing.
-.json
+*.json
