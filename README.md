@@ -1,5 +1,5 @@
 # pytrope
-A couple of python scripts for pulling trope data off of tvtropes.org. Useful for writers who need quick inspiration!
+A couple of python scripts for pulling trope data off of [TV Tropes](tvtropes.org). Useful for writers who need quick inspiration!
 
 ## `format.py`
 
