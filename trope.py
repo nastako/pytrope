@@ -1,64 +1,90 @@
-#!/usr/bin/env python3
-
-# example usage `./trope.py NarrativeTropes 4`
-#               `./trope.py NarrativeTropes -1`
-#               `./trope.py NarrativeTropes`
-
-# This script prints a number of random tropes to the command line
-# given a tvtrope.org article name. It's designed for index pages.
-# It is not necessary to have the data stored 
-
-import random
-import sys
+#!/usr/bin/env/python3
 import json
-import subprocess
+import random
+from bs4 import BeautifulSoup
+import urllib.request
+import sys
 
-def main(listfile, num):
-	data = []
-	name = ""
+headers = {'User-Agent': 'Mozilla/5.0'}
+url = "https://tvtropes.org/pmwiki/pmwiki.php/Main/{name}"
+trope_folder = "tropes/"
 
-	# this lets us use full or short file names
-	if not listfile.endswith(".json"):
-		name = listfile
-		listfile = listfile + ".json"
-	else:
-		name = listfile.replace(".json", "")
+# only ever use this in an `except` block
+def get_error():
+	return sys.exc_info()[0]
 
-	# here we try to make sense of the number value provided by the user.
+def fix_filename(filename):
+	if not filename.lower().endswith(".json"):
+		filename = filename + ".json"
+	return filename
+
+def io(filename, data={}, mode='r'):
+	filename = trope_folder + fix_filename(filename)
+	error = None
+	try:
+		with open(filename, mode, encoding="utf-8") as f:
+			if mode == 'r':
+				data = json.load(f)
+			elif mode == 'w':
+				f.write(json.dumps(data, indent=4))
+	except:
+		data = {}
+		error = get_error()
+	return data, error
+
+def update(name):
+	data = {}
+	error = None
+	try:
+		request = urllib.request.Request(url.format(name=name), headers=headers)
+		page = urllib.request.urlopen(request).read()
+		soup = BeautifulSoup(page, 'html.parser').find(id='main-article')
+		data = get_tropes(soup, f=lambda c: c != "plus")
+		if len(data) == 0:
+			data = get_tropes(soup)
+	except:
+		error = get_error()
+	return data, error
+
+def get_number(num):
+	error = None
 	try:
 		num = int(num)
-	except ValueError:
-		print("invalid input number, defaulting to 1!")
+	except:
 		num = 1
-	
-	# this tries to open the file
-	try:
-		with open(listfile, 'r') as f:
-			data = json.load(f)
-	except FileNotFoundError:
-		# ok we didn't find the file, no big deal!
-		print("File does not exist! Let's try grabbing it!")
-		cp = subprocess.run(["python.exe", "grab.py", name], shell=True)
-		if cp.returncode != 0:
-			print("Error: could not find file")
-			quit(1)
-		else:
-			with open(listfile, 'r') as f:
-					data = json.load(f)
+		error = get_error()
+	return num, error
 
-	print("---------TROPES---------")
-	if num < 1 or num >= len(data):
-		for item in data:
-			print(item)
+def print_data(data, num):
+	num, error = get_number(num)
+	keys = list(data.keys())
+
+	if num < 0 or num >= len(data):
+		for item in keys:
+			print(data[item])
 	else:
-		random.shuffle(data)
+		random.shuffle(keys)
 
-		for i in range(num):
-			if i <= (len(data) - 1):
-				print(data[i])
+		while num > 0:
+			key = keys.pop()
+			print(data[key])
+			num = num - 1
+
+def get_tropes(soup, f=None):
+	return {x.a.get_text() : x.get_text() for x in soup.find_all("li", _class=f)}
+
+def main(file, num):
+	p, e = io(file, mode='r')
+	if e != None:
+		p, e = update(file)
+		if e == None:
+			io(file, p, mode='w')
+	print_data(p, num)
 
 if __name__ == "__main__":
 	if (len(sys.argv) - 1) == 2:
 		main(sys.argv[1], sys.argv[2])
 	elif (len(sys.argv) - 1) == 1:
 		main(sys.argv[1], 1)
+	else:
+		print("error: no arguments provided")
