@@ -78,7 +78,7 @@ def print_data(data, num):
 			num = num - 1
 
 def get_tropes(soup, f=None):
-	return {x.a.get_text() : x.get_text() for x in soup.find_all("li", _class=f)}
+	return {x.a.get_text() : x.get_text().replace("\n", "") for x in soup.find_all("li", _class=f)}
 
 def main(file, num):
 	p, e = io(file, mode='r')
