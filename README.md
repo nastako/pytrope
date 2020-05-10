@@ -1,6 +1,12 @@
 # pytrope
 A couple of python scripts for pulling trope data off of [TV Tropes](https://tvtropes.org). Useful for writers who need quick inspiration!
 
+## Installation
+
+pytrope requires Python 3. It might support earlier versions of python in the future, but at this point I don't care, and Python 3 has been out for over ten years, so you should really be using it.
+
+Just run the `install.sh` file and it will use pip3 to install the html parser.
+
 ## `format.py`
 
 Trims and sorts data from the given input file, line by line. The original file will be deleted.
