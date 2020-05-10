@@ -24,9 +24,16 @@ def io(filename, data={}, mode='r'):
 	try:
 		with open(filename, mode, encoding="utf-8") as f:
 			if mode == 'r':
-				data = json.load(f)
+				try:
+					data = json.load(f)
+				except:
+					data = {}
+					error = get_error()
 			elif mode == 'w':
-				f.write(json.dumps(data, indent=4))
+				try:
+					f.write(json.dumps(data, indent=4))
+				except:
+					error = get_error()
 	except:
 		data = {}
 		error = get_error()
@@ -78,7 +85,11 @@ def main(file, num):
 	if e != None:
 		p, e = update(file)
 		if e == None:
-			io(file, p, mode='w')
+			p, e = io(file, p, mode='w')
+			if e != None:
+				print(e)
+		else:
+			print(e)
 	print_data(p, num)
 
 if __name__ == "__main__":
